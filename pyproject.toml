@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "rai-assignment"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pypdf2 = "^3.0.1"
+pycryptodome = "^3.20.0"
+langchain = "^0.1.14"
+elasticsearch = "^8.13.0"
+langchain-openai = "^0.1.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
