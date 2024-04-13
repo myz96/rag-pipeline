@@ -6,12 +6,34 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.13"
 pypdf2 = "^3.0.1"
 pycryptodome = "^3.20.0"
 langchain = "^0.1.14"
 elasticsearch = "^8.13.0"
 langchain-openai = "^0.1.1"
+pandas = "^2.2.1"
+spacy = "^3.7.4"
+notebook = "^7.1.2"
+python-dotenv = "^1.0.1"
+llama-index = "^0.10.28"
+llama-index-readers-file = "^0.1.16"
+pymupdf = "^1.24.1"
+llama-index-embeddings-openai = "^0.1.7"
+chromadb = "^0.4.24"
+llama-index-vector-stores-chroma = "^0.1.6"
+azureml-metrics = "^0.0.48.post2"
+llama-index-embeddings-cohere = "^0.1.5"
+llama-index-llms-cohere = "^0.1.6"
+llama-index-vector-stores-qdrant = "^0.2.0"
+qdrant-client = "^1.8.2"
+pypdf = "^4.2.0"
+transformers = {extras = ["torch"], version = "^4.39.3"}
+llama-index-llms-ollama = "^0.1.2"
+llama-index-embeddings-huggingface = "^0.2.0"
+tqdm = "^4.66.2"
+ipywidgets = "^8.1.2"
+fastembed = "^0.2.6"
 
 
 [build-system]
