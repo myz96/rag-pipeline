@@ -1,5 +1,7 @@
-.gitignore
-
 # Environments
 .env
 .venv
+
+# Test files
+.qa_datasets
+.test_data

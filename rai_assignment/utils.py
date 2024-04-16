@@ -8,12 +8,14 @@ from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
 from llama_index.core import StorageContext
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.llama_dataset.generator import RagDatasetGenerator
-from llama_index.core.evaluation import EmbeddingQAFinetuneDataset,AnswerRelevancyEvaluator, ContextRelevancyEvaluator, FaithfulnessEvaluator, SemanticSimilarityEvaluator, generate_question_context_pairs
+from llama_index.core.evaluation import EmbeddingQAFinetuneDataset, AnswerRelevancyEvaluator, ContextRelevancyEvaluator, FaithfulnessEvaluator, SemanticSimilarityEvaluator, generate_question_context_pairs
 from llama_index.core.evaluation.notebook_utils import get_eval_results_df
+
 
 def load_documents(documents_path):
     documents = SimpleDirectoryReader(documents_path).load_data()
     return documents
+
 
 def get_nodes(documents, chunk_size=512, chunk_overlap=10):
     text_splitter = SentenceSplitter(
@@ -63,6 +65,7 @@ def display_retrieval_evaluation_results(name, eval_results):
 
     return metric_df
 
+
 def create_question_dataset(nodes, llm):
 
     NUM_QUESTIONS_GENERATED_PER_NODE = 1
@@ -75,18 +78,20 @@ def create_question_dataset(nodes, llm):
     rag_dataset = dataset_generator.generate_questions_from_nodes()
     return rag_dataset
 
+
 async def create_prediction_dataset(rag_dataset, query_engine):
-    
+
     PREDICTION_REQUEST_BATCH_SIZE = 5
     REQUEST_WAIT_TIME = 10
 
     prediction_data = await rag_dataset.amake_predictions_with(
-        predictor=query_engine, 
-        batch_size=PREDICTION_REQUEST_BATCH_SIZE, 
+        predictor=query_engine,
+        batch_size=PREDICTION_REQUEST_BATCH_SIZE,
         sleep_time_in_seconds=REQUEST_WAIT_TIME,
-        show_progress=True, 
+        show_progress=True,
     )
     return prediction_data
+
 
 def create_judges(evaluation_llm):
     judges = {}
@@ -106,6 +111,7 @@ def create_judges(evaluation_llm):
     judges["semantic_similarity"] = SemanticSimilarityEvaluator()
 
     return judges
+
 
 def create_evaluation_tasks(rag_dataset, prediction_data, judges):
 
@@ -147,6 +153,7 @@ def create_evaluation_tasks(rag_dataset, prediction_data, judges):
         )
     return eval_tasks
 
+
 async def evaluate_tasks(eval_tasks):
     '''Batch await tasks to avoid rate limits on Tier1 OpenAI usage'''
     nest_asyncio.apply()
@@ -160,6 +167,7 @@ async def evaluate_tasks(eval_tasks):
         eval_result = await tqdm_asyncio.gather(*chunk, mininterval=MINIMUM_INTERVAL, delay=DELAY)
         eval_results.extend(eval_result)
     return eval_results
+
 
 def display_generation_evaluation_results(eval_results):
 
@@ -183,7 +191,7 @@ def display_generation_evaluation_results(eval_results):
     with open(EVALUATIONS_PATH, "w") as json_file:
         json.dump(evaluations_objects, json_file)
 
-    # Viewing evaluation results
+    # View evaluation results
     deep_eval_df, mean_answer_relevancy_df = get_eval_results_df(
         ["mean value"] * len(evals["answer_relevancy"]),
         evals["answer_relevancy"],
