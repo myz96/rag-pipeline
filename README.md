@@ -56,6 +56,11 @@ This project creates and compares two RAG pipelines. Each pipeline consists of a
    brew install --cask ollama
    ```
 
+   Create .env file and insert OPEN_AI_KEY
+   ```console
+   OPEN_AI_KEY=sk-...
+   ```
+
    Open Ollama GUI to serve Ollama model
 
    Then, download Gemma model
