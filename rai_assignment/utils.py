@@ -15,12 +15,12 @@ def load_documents(documents_path):
     documents = SimpleDirectoryReader(documents_path).load_data()
     return documents
 
-
 def get_nodes(documents, chunk_size=512, chunk_overlap=10):
     text_splitter = SentenceSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     nodes = text_splitter.get_nodes_from_documents(documents)
-    return nodes
+    cleaned_nodes = [node for node in nodes if node.text]
+    return cleaned_nodes
 
 
 def create_index(nodes, vector_store):
@@ -29,7 +29,10 @@ def create_index(nodes, vector_store):
     return index
 
 
-def create_retrieval_qa_dataset(nodes, llm, path, num_questions_per_chunk=2):
+def create_retrieval_qa_dataset(nodes, llm, path):
+
+    NUMBER_OF_QUESTIONS_PER_CHUNK = 1
+
     if os.path.exists(path):
         os.remove(path)
         print("Previous retrieval evaluation dataset deleted successfully.")
@@ -37,7 +40,7 @@ def create_retrieval_qa_dataset(nodes, llm, path, num_questions_per_chunk=2):
         print("Retrieval evaluation dataset does not exist. Creating one now...")
 
     qa_dataset = generate_question_context_pairs(
-        nodes, llm=llm, num_questions_per_chunk=num_questions_per_chunk
+        nodes, llm=llm, num_questions_per_chunk=NUMBER_OF_QUESTIONS_PER_CHUNK
     )
     qa_dataset.save_json(path)
 
@@ -62,7 +65,7 @@ def display_retrieval_evaluation_results(name, eval_results):
 
 def create_question_dataset(nodes, llm):
 
-    NUM_QUESTIONS_GENERATED_PER_NODE = 2
+    NUM_QUESTIONS_GENERATED_PER_NODE = 1
 
     dataset_generator = RagDatasetGenerator(
         nodes,
@@ -74,8 +77,8 @@ def create_question_dataset(nodes, llm):
 
 async def create_prediction_dataset(rag_dataset, query_engine):
     
-    PREDICTION_REQUEST_BATCH_SIZE = 10
-    REQUEST_WAIT_TIME = 2
+    PREDICTION_REQUEST_BATCH_SIZE = 5
+    REQUEST_WAIT_TIME = 10
 
     prediction_data = await rag_dataset.amake_predictions_with(
         predictor=query_engine, 
@@ -105,6 +108,9 @@ def create_judges(evaluation_llm):
     return judges
 
 def create_evaluation_tasks(rag_dataset, prediction_data, judges):
+
+    REQUEST_WAIT_TIME = 3
+
     eval_tasks = []
     for example, prediction in zip(
         rag_dataset.examples, prediction_data.predictions
@@ -113,14 +119,14 @@ def create_evaluation_tasks(rag_dataset, prediction_data, judges):
             judges["answer_relevancy"].aevaluate(
                 query=example.query,
                 response=prediction.response,
-                sleep_time_in_seconds=1.5,
+                sleep_time_in_seconds=REQUEST_WAIT_TIME,
             )
         )
         eval_tasks.append(
             judges["context_relevancy"].aevaluate(
                 query=example.query,
                 contexts=prediction.contexts,
-                sleep_time_in_seconds=1.5,
+                sleep_time_in_seconds=REQUEST_WAIT_TIME,
             )
         )
         eval_tasks.append(
@@ -128,7 +134,7 @@ def create_evaluation_tasks(rag_dataset, prediction_data, judges):
                 query=example.query,
                 response=prediction.response,
                 contexts=prediction.contexts,
-                sleep_time_in_seconds=1.5,
+                sleep_time_in_seconds=REQUEST_WAIT_TIME,
             )
         )
         eval_tasks.append(
@@ -136,7 +142,7 @@ def create_evaluation_tasks(rag_dataset, prediction_data, judges):
                 query=example.query,
                 response="\n".join(prediction.contexts),
                 reference="\n".join(example.reference_contexts),
-                sleep_time_in_seconds=1.5,
+                sleep_time_in_seconds=REQUEST_WAIT_TIME,
             )
         )
     return eval_tasks
@@ -145,7 +151,7 @@ async def evaluate_tasks(eval_tasks):
     '''Batch await tasks to avoid rate limits on Tier1 OpenAI usage'''
     nest_asyncio.apply()
 
-    EVALUATION_BATCH_SIZE = 10
+    EVALUATION_BATCH_SIZE = 5
     MINIMUM_INTERVAL = 10.0
     DELAY = 5.0
 
@@ -212,23 +218,3 @@ def display_generation_evaluation_results(eval_results):
     mean_scores_df = mean_scores_df.set_index("index")
     mean_scores_df.index = mean_scores_df.index.set_names(["metrics"])
     return mean_scores_df
-
-# def display_pairwise_eval_df(query, response1, response2, eval_result) -> None:
-#     eval_df = pd.DataFrame(
-#         {
-#             "Query": query,
-#             "Reference Response (Answer 1)": response2,
-#             "Current Response (Answer 2)": response1,
-#             "Score": eval_result.score,
-#             "Reason": eval_result.feedback,
-#         },
-#         index=[0],
-#     )
-#     eval_df = eval_df.style.set_properties(
-#         **{
-#             "inline-size": "300px",
-#             "overflow-wrap": "break-word",
-#         },
-#         subset=["Current Response (Answer 2)", "Reference Response (Answer 1)"]
-#     )
-#     display(eval_df)
