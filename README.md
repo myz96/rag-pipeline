@@ -47,7 +47,12 @@ This project creates and compares two RAG pipelines. Each pipeline consists of a
 
 2. Install dependencies:
 
-   First, [install poetry](https://python-poetry.org/docs/#installation)
+   [Install poetry](https://python-poetry.org/docs/#installation)
+
+    Create .env file and insert OPEN_AI_KEY
+   ```console
+   OPEN_AI_KEY=sk-...
+   ```
 
    Then, install dependencies
 
@@ -56,10 +61,7 @@ This project creates and compares two RAG pipelines. Each pipeline consists of a
    brew install --cask ollama
    ```
 
-   Create .env file and insert OPEN_AI_KEY
-   ```console
-   OPEN_AI_KEY=sk-...
-   ```
+
 
    Open Ollama GUI to serve Ollama model
 
